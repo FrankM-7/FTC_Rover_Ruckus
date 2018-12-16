@@ -3,23 +3,16 @@ package org.firstinspires.ftc.teamcode;
 import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
-import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.teamcode.Hardware;
-import org.opencv.core.Range;
+@Autonomous(name="No Crater", group="4719")
 
-@Autonomous(name="Crater", group="DogeCV")
-
-public class Crater extends LinearOpMode
+public class AutoCrater extends LinearOpMode
 {
     Hardware robot = new Hardware();
-    // Detector object
     private GoldAlignDetector detector;
     private ElapsedTime runtime = new ElapsedTime();
     int RFPos;
@@ -28,119 +21,136 @@ public class Crater extends LinearOpMode
     @Override
     public void runOpMode() {
         robot.init(hardwareMap);
-        telemetry.addData("Status", "DogeCV 2018.0 - Gold Align Example");
-
+        telemetry.addData("Status: ", "Starting Up");
+        telemetry.update();
         // Set up detector
         detector = new GoldAlignDetector(); // Create detector
         detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance()); // Initialize it with the app context and camera
         detector.useDefaults(); // Set detector to use default settings
-        // Optional tuning
         detector.alignSize = 100; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
         detector.alignPosOffset = 0; // How far from center frame to offset this alignment zone.
         detector.downscale = 0.4; // How much to downscale the input frames
         detector.areaScoringMethod = DogeCV.AreaScoringMethod.MAX_AREA; // Can also be PERFECT_AREA
-        //detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
         detector.maxAreaScorer.weight = 0.005; //
         detector.ratioScorer.weight = 5; //
         detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
-
         detector.enable(); // Start the detector!
-
+        telemetry.addData("Status: ", "Ready");
+        telemetry.update();
         waitForStart();
 
         while (robot.mrGyro.isCalibrating()&& opModeIsActive()) {
         }
-        driveStraightForward(30000, 0.4);
-        //move back
-        //hinge(.8, -7500);
-       /* driveBack(.9, 75);
+        telemetry.addData("Status: ", "Running");
+        telemetry.update();
+        //come down
+        hinge(.8, -7400);
+        //unstick the robot from the wall
+        driveBack(.9, 75);
+        //turn to make sure that the robot is lined up with the craters wall
         turn(0);
-        //move left
+        //move left to get out of
         driveLeft(.9, 500);
+        // turn to make sure the robot is lined up
         turn(0);
-        //move back
+        //move back, get ready o turn to scan
         driveBack(.9, 1500);
-        turn(0);
-        //turn right
+        //turn to face phone to block
         turn(-90);
+        //drive back to make sure it detects the first block
         driveBack(.9, 1500);
+        //make sure the robot is parallel to the 3 items
         turn(-90);
-        sleep(500);
+        //short stop
+        sleep(100);
+        //go forward until it detects the cube
         while (!detector.getAligned() && opModeIsActive()) {
-            //move forward until it reads cube
+            //forward
             robot.rightFront.setPower(.6);
             robot.leftBack.setPower(.6);
-
         }
-        while (detector.getAligned() && x==1 && opModeIsActive()) {//when it reads a yellow square
-            //stop motors
+        //when detected, knock it off
+        while (detector.getAligned() && x==1 && opModeIsActive()) {
+            //short stop
             robot.leftBack.setPower(0);
             robot.rightFront.setPower(0);
-            sleep(250);
+            sleep(50);
             //store position
             RFPos = robot.rightFront.getCurrentPosition();
+            //make sure the robot is perfect parallel to the cube
             turn(-90);
             //knock it off
             driveRight(.9, 1000);
+            //make sure the robot is parallel to knocked off cube
             turn(-90);
-            //come back
+            //come back after knock down
             driveLeft(.9, 800);
+            //make sure the robot is straight
             turn(-90);
             x=2;
         }
-        //go forward the distance needed
+        //go forward the distance needed, towards vuforia
         remDist(.9, 6000);
+        //disable the detector
+        detector.disable();
+        //turn to face the crater
         turn(-225);
-
-        driveLeft(.9, 800);
+        //go left to hit the wall
+        driveLeft(.9, 1000);
+        //make sure that the robot is straight
         turn(-225);
-        driveRight(.9, 200);
+        //come off the wall
+        driveRight(.9, 150);
+        //make sure the robot is parallel to the wall
         turn(-225);
+        //go to depot
         driveBack(.9, 3200);
+        //make sure its straight
         turn(-225);
+        //drop off the team marker
         robot.drop.setPosition(1);
         sleep(500);
         robot.drop.setPosition(0);
         sleep(500);
+        //go park bro
         driveForward(.9, 3000);
+        //parallel to the wall
         turn(-225);
+        //hurry bro, park
         driveForward(1, 1500);
+        // make sure youre with the wall
         driveLeft(.9, 300);
+        //Park man!
         driveForward(1,1000);
-        //  turn(-270);
-        //diagonalLB(.5,1000);
-*/
     }
-
 
     public void remDist(double speed, int Target) {
         int dist = Target - RFPos;
-
+        //set encoders
         robot.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+        //stop and reset encoders
         robot.leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
+        //set target
         robot.rightFront.setTargetPosition(dist);
         robot.leftBack.setTargetPosition(dist);
-
+        //go to position
         robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         robot.leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //set speed
         runtime.reset();
         robot.rightFront.setPower(speed);
         robot.leftBack.setPower(speed);
-
         while(robot.rightFront.isBusy() && robot.leftBack.isBusy() && opModeIsActive()) {
         }
-
+        //turn it off
         robot.rightFront.setPower(0);
         robot.leftBack.setPower(0);
-
+        //  run using encoders again
         robot.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
-
 
     public void turnAbsolute(int target) {
         robot.zAccumulated = robot.mrGyro.getIntegratedZValue();  //Set variables to gyro readings
@@ -160,7 +170,7 @@ public class Crater extends LinearOpMode
                 robot.rightBack.setPower(turnSpeed);     //turn right
                 robot.leftBack.setPower(-turnSpeed);
             }
-            telemetry.addData("accu", String.format("%03d", robot.zAccumulated));
+            telemetry.addData("Degree", String.format("%03d", robot.zAccumulated));
             telemetry.update();
             robot.zAccumulated = robot.mrGyro.getIntegratedZValue();  //Set variables to gyro readings
         }
@@ -228,7 +238,6 @@ public class Crater extends LinearOpMode
         robot.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-
     public void driveBack(double speed, int Target) {
         //RESET encoders
         robot.rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -236,7 +245,6 @@ public class Crater extends LinearOpMode
         //set target
         robot.rightFront.setTargetPosition(-Target);
         robot.leftBack.setTargetPosition(-Target);
-
         //run to position
         robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         robot.leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -310,7 +318,7 @@ public class Crater extends LinearOpMode
         robot.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
-
+}
     public void driveStraightForward(int duration, double power) {
         double leftSpeed; //Power to feed the motors
         double rightSpeed;
