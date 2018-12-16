@@ -8,9 +8,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Crater", group="4719")
+@Autonomous(name="Crater Straight", group="4719")
 
-public class AutoCrater extends LinearOpMode
+public class AutoCraterStraight extends LinearOpMode
 {
     Hardware robot = new Hardware();
     private GoldAlignDetector detector;
@@ -43,6 +43,8 @@ public class AutoCrater extends LinearOpMode
         }
         telemetry.addData("Status: ", "Running");
         telemetry.update();
+        driveStraightForward(5000,.5);
+        /*
         //come down
         hinge(.8, -7400);
         //unstick the robot from the wall
@@ -113,15 +115,16 @@ public class AutoCrater extends LinearOpMode
         robot.drop.setPosition(0);
         sleep(500);
         //go park bro
-        driveForward(.9, 3000);
-        //parallel to the wall
+        driveStraightForward(4500, 1);
+        //go to wall
+        driveLeft(.9, 500);
+        // get off the wall
+        driveRight(.9, 150);
+        //straighten out
         turn(-225);
-        //hurry bro, park
-        driveForward(1, 1500);
-        // make sure youre with the wall
-        driveLeft(.9, 300);
         //Park man!
-        driveForward(1,1000);
+        driveStraightForward(1000,1);
+        */
     }
 
     public void remDist(double speed, int Target) {
@@ -357,10 +360,60 @@ public class AutoCrater extends LinearOpMode
             telemetry.addData("2. Right", robot.rightFront.getPower());
             telemetry.addData("3. LeftF", robot.leftFront.getPower());
             telemetry.addData("4. RightB", robot.rightBack.getPower());
+            telemetry.addData("Angle: ", robot.zAccumulated);
             telemetry.addData("3. Distance to go", duration + startPosition - robot.leftBack.getCurrentPosition());
             telemetry.update();
         }
+        turn(robot.zAccumulated);
 
+        robot.leftBack.setPower(0);
+        robot.rightFront.setPower(0);
+        robot.rightBack.setPower(0);
+        robot.leftFront.setPower(0);
+    }
+    public void driveStraightBack(int duration, double power) {
+        double leftSpeed; //Power to feed the motors
+        double rightSpeed;
+        double leftFSpeed;
+        double rightBSpeed;
+
+        double target = robot.mrGyro.getIntegratedZValue();  //Starting direction
+        double startPosition = robot.leftBack.getCurrentPosition();  //Starting position
+
+        robot.rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        robot.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        while (robot.leftBack.getCurrentPosition() < duration + startPosition && opModeIsActive()) {  //While we have not passed out intended distance
+            robot.zAccumulated = robot.mrGyro.getIntegratedZValue();  //Current direction
+
+            leftSpeed = power + (robot.zAccumulated - target) / 100;  //Calculate speed for each side
+            rightSpeed = power - (robot.zAccumulated - target) / 100;  //See Gyro Straight video for detailed explanation
+            leftFSpeed = 0 + (robot.zAccumulated-target)/ 100;
+            rightBSpeed = 0 - (robot.zAccumulated - target) / 100;  //See Gyro Straight video for detailed explanation
+
+            leftSpeed = com.qualcomm.robotcore.util.Range.clip(leftSpeed, -1, 1);
+            rightSpeed = com.qualcomm.robotcore.util.Range.clip(rightSpeed, -1, 1);
+
+            robot.leftBack.setPower(leftSpeed);
+            robot.rightFront.setPower(rightSpeed);
+            robot.rightBack.setPower(rightBSpeed);
+            robot.leftFront.setPower(leftFSpeed);
+
+            telemetry.addData("1. Left", robot.leftBack.getPower());
+            telemetry.addData("2. Right", robot.rightFront.getPower());
+            telemetry.addData("3. LeftF", robot.leftFront.getPower());
+            telemetry.addData("4. RightB", robot.rightBack.getPower());
+            telemetry.addData("3. Distance to go", duration + startPosition - robot.leftBack.getCurrentPosition());
+            telemetry.update();
+        }
+        turn(robot.zAccumulated);
         robot.leftBack.setPower(0);
         robot.rightFront.setPower(0);
         robot.rightBack.setPower(0);

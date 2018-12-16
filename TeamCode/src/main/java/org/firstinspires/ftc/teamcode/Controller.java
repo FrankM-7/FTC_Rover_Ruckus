@@ -1,6 +1,3 @@
-//hello
-//hello there
-//fuckkkk
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -37,6 +34,7 @@ public class Controller extends LinearOpMode {
                 robot.leftFront.setPower(gamepad1.right_stick_x);
                 robot.leftBack.setPower(gamepad1.right_stick_x);
             }
+
 
             if (gamepad1.dpad_up) {
                 robot.hingeMotor.setPower(.6);
