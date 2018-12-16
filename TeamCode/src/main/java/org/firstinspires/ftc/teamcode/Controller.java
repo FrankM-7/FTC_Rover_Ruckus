@@ -30,7 +30,13 @@ public class Controller extends LinearOpMode {
            /// driveStraightForward();
             //driveStraightSideways();
             driveStraightFinal();
-
+            
+            while(Math.abs(gamepad1.right_stick_x)>.1){
+                robot.rightBack.setPower(-gamepad1.right_stick_x);
+                robot.rightFront.setPower(-gamepad1.right_stick_x);
+                robot.leftFront.setPower(gamepad1.right_stick_x);
+                robot.leftBack.setPower(gamepad1.right_stick_x);
+            }
 
             if (gamepad1.dpad_up) {
                 robot.hingeMotor.setPower(.6);
