@@ -9,9 +9,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Crater Straight", group="4719")
+@Autonomous(name="Double Block", group="4719")
 
-public class AutoCraterStraight extends LinearOpMode
+public class AutoDoubleBlockStraight extends LinearOpMode
 {
     Hardware robot = new Hardware();
     private GoldAlignDetector detector;
@@ -35,7 +35,7 @@ public class AutoCraterStraight extends LinearOpMode
         detector.maxAreaScorer.weight = 0.005; //
         detector.ratioScorer.weight = 5; //
         detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
-      //  detector.enable(); // Start the detector!
+        //  detector.enable(); // Start the detector!
         telemetry.addData("Status: ", "Ready");
         telemetry.update();
         waitForStart();
@@ -83,8 +83,6 @@ public class AutoCraterStraight extends LinearOpMode
             turn(-90);
             x=2;
         }
-        //disable the detector
-        detector.disable();
         //go forward the distance needed, towards vuforia
         driveStraightRemDist(1, 6000, -225);
         //go left to hit the wall
@@ -100,12 +98,34 @@ public class AutoCraterStraight extends LinearOpMode
         sleep(500);
         robot.drop.setPosition(0);
         sleep(500);
-        //go park bro
-        driveStraightForward(1, 4500, -225);
-        // make sure you're with the wall
-        driveLeft(.9, 300);
-        //Park man!
-        driveStraightForward(1,1000, -225);
+        //turn to scan
+        turn(-170);
+        while (!detector.getAligned() && opModeIsActive()) {
+            //forward
+            robot.rightFront.setPower(-.6);
+            robot.leftBack.setPower(-.6);
+        }
+        //when detected, knock it off
+        while (detector.getAligned() && x==1 && opModeIsActive()) {
+            //short stop
+            robot.leftBack.setPower(0);
+            robot.rightFront.setPower(0);
+            sleep(50);
+            //store position
+            RFPos = robot.rightFront.getCurrentPosition();
+            //make sure the robot is perfect parallel to the cube
+            turn(-170);
+            //knock it off
+            driveRight(.9, 1000);
+            //make sure the robot is parallel to knocked off cube
+            turn(-170);
+            //come back after knock down
+            driveLeft(.9, 800);
+            //make sure the robot is straight
+            turn(-170);
+            x=2;
+        }
+        detector.disable();
     }
 
     public void turnAbsolute(int target) {
@@ -391,4 +411,3 @@ public class AutoCraterStraight extends LinearOpMode
         robot.leftFront.setPower(0);
     }
 }
-

@@ -9,9 +9,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Crater Straight", group="4719")
+@Autonomous(name="No Crater", group="4719")
 
-public class AutoCraterStraight extends LinearOpMode
+public class AutoNoCraterStraight extends LinearOpMode
 {
     Hardware robot = new Hardware();
     private GoldAlignDetector detector;
@@ -35,7 +35,7 @@ public class AutoCraterStraight extends LinearOpMode
         detector.maxAreaScorer.weight = 0.005; //
         detector.ratioScorer.weight = 5; //
         detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
-      //  detector.enable(); // Start the detector!
+        //  detector.enable(); // Start the detector!
         telemetry.addData("Status: ", "Ready");
         telemetry.update();
         waitForStart();
@@ -86,26 +86,26 @@ public class AutoCraterStraight extends LinearOpMode
         //disable the detector
         detector.disable();
         //go forward the distance needed, towards vuforia
-        driveStraightRemDist(1, 6000, -225);
+        driveStraightRemDist(1, 6000, -45);
         //go left to hit the wall
-        driveLeft(1, 600);
+        driveRight(1, 600);
         //come off the wall
-        driveRight(.8, 150);
+        driveLeft(.8, 150);
         //make sure the robot is parallel to the wall
-        turn(-225);
+        turn(-45);
         //go to depot
-        driveStraightBack(1, 3200, -225);
+        driveStraightBack(1, 3200, -45);
         //drop off the team marker
         robot.drop.setPosition(1);
         sleep(500);
         robot.drop.setPosition(0);
         sleep(500);
         //go park bro
-        driveStraightForward(1, 4500, -225);
+        driveStraightForward(1, 4500, -45);
         // make sure you're with the wall
         driveLeft(.9, 300);
         //Park man!
-        driveStraightForward(1,1000, -225);
+        driveStraightForward(1,1000, -45);
     }
 
     public void turnAbsolute(int target) {
