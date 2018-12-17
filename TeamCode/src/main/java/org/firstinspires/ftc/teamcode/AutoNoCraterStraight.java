@@ -35,7 +35,7 @@ public class AutoNoCraterStraight extends LinearOpMode
         detector.maxAreaScorer.weight = 0.005; //
         detector.ratioScorer.weight = 5; //
         detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
-        //  detector.enable(); // Start the detector!
+         detector.enable(); // Start the detector!
         telemetry.addData("Status: ", "Ready");
         telemetry.update();
         waitForStart();
@@ -46,7 +46,7 @@ public class AutoNoCraterStraight extends LinearOpMode
         telemetry.addData("Status: ", "Running");
         telemetry.update();
         //come down
-        hinge(.9, -7400);
+        //hinge(.9, -7400);
         //unstick the robot from the wall
         driveStraightBack(.8, 75, 0);
         //move left to get out of

@@ -35,7 +35,7 @@ public class AutoCraterStraight extends LinearOpMode
         detector.maxAreaScorer.weight = 0.005; //
         detector.ratioScorer.weight = 5; //
         detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
-      //  detector.enable(); // Start the detector!
+        detector.enable(); // Start the detector!
         telemetry.addData("Status: ", "Ready");
         telemetry.update();
         waitForStart();
@@ -46,9 +46,9 @@ public class AutoCraterStraight extends LinearOpMode
         telemetry.addData("Status: ", "Running");
         telemetry.update();
         //come down
-        hinge(.9, -7400);
+      //  hinge(.9, -7400);
         //unstick the robot from the wall
-        driveStraightBack(.8, 75, 0);
+        driveBack(1, 75);
         //move left to get out of
         driveLeft(.8, 500);
         // turn to make sure the robot is lined up
@@ -229,6 +229,31 @@ public class AutoCraterStraight extends LinearOpMode
         //turn on encoders
         robot.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+    public void driveBack(double speed, int Target) {
+        //RESET encoders
+        robot.rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //set target
+        robot.rightFront.setTargetPosition(-Target);
+        robot.leftBack.setTargetPosition(-Target);
+        //run to position
+        robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        runtime.reset();
+        //set speed
+        robot.rightFront.setPower(speed);
+        robot.leftBack.setPower(speed);
+        //update telemetry to show positions
+        while (robot.rightFront.isBusy() && robot.leftBack.isBusy()&& opModeIsActive()) {
+
+        }
+        //turn off any extra power
+        robot.rightFront.setPower(0);
+        robot.leftBack.setPower(0);
+        //turn on encoders
+        robot.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     public void driveStraightForward( double power, int duration, int desiredDegree) {
         double leftSpeed; //Power to feed the motors

@@ -44,7 +44,7 @@ public class AutoCrater extends LinearOpMode
         telemetry.addData("Status: ", "Running");
         telemetry.update();
         //come down
-        hinge(.8, -7400);
+        //hinge(.8, -7400);
         //unstick the robot from the wall
         driveBack(.9, 75);
         //turn to make sure that the robot is lined up with the craters wall

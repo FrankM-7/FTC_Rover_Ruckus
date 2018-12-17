@@ -35,7 +35,7 @@ public class AutoDoubleBlockStraight extends LinearOpMode
         detector.maxAreaScorer.weight = 0.005; //
         detector.ratioScorer.weight = 5; //
         detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
-        //  detector.enable(); // Start the detector!
+         detector.enable(); // Start the detector!
         telemetry.addData("Status: ", "Ready");
         telemetry.update();
         waitForStart();
@@ -46,7 +46,7 @@ public class AutoDoubleBlockStraight extends LinearOpMode
         telemetry.addData("Status: ", "Running");
         telemetry.update();
         //come down
-        hinge(.9, -7400);
+        //hinge(.9, -7400);
         //unstick the robot from the wall
         driveStraightBack(.8, 75, 0);
         //move left to get out of
@@ -84,15 +84,15 @@ public class AutoDoubleBlockStraight extends LinearOpMode
             x=2;
         }
         //go forward the distance needed, towards vuforia
-        driveStraightRemDist(1, 6000, -225);
+        driveStraightRemDist(1, 6000, -220);
         //go left to hit the wall
         driveLeft(1, 600);
         //come off the wall
         driveRight(.8, 150);
         //make sure the robot is parallel to the wall
-        turn(-225);
+        turn(-220);
         //go to depot
-        driveStraightBack(1, 3200, -225);
+        driveStraightBack(1, 3200, -220);
         //drop off the team marker
         robot.drop.setPosition(1);
         sleep(500);
@@ -106,7 +106,7 @@ public class AutoDoubleBlockStraight extends LinearOpMode
             robot.leftBack.setPower(-.6);
         }
         //when detected, knock it off
-        while (detector.getAligned() && x==1 && opModeIsActive()) {
+        while (detector.getAligned() && x==2 && opModeIsActive()) {
             //short stop
             robot.leftBack.setPower(0);
             robot.rightFront.setPower(0);
