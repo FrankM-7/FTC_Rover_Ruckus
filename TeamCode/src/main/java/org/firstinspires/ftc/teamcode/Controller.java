@@ -159,8 +159,8 @@ public class Controller extends LinearOpMode {
             leftSpeed = com.qualcomm.robotcore.util.Range.clip(leftSpeed, -1, 1);
             rightSpeed = com.qualcomm.robotcore.util.Range.clip(rightSpeed, -1, 1);
 
-            robot.leftBack.setPower(leftSpeed/2);
-            robot.rightFront.setPower(rightSpeed/2);
+            robot.leftBack.setPower(leftSpeed);
+            robot.rightFront.setPower(rightSpeed);
             robot.rightBack.setPower(rightBSpeed);
             robot.leftFront.setPower(leftFSpeed);
 

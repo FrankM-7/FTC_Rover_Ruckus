@@ -1,5 +1,5 @@
 package org.firstinspires.ftc.teamcode;
-//V3.0.
+//V3.0
 import com.disnodeteam.dogecv.CameraViewDisplay;
 import com.disnodeteam.dogecv.DogeCV;
 import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
@@ -35,7 +35,7 @@ public class AutoNoCraterStraight extends LinearOpMode
         detector.maxAreaScorer.weight = 0.005; //
         detector.ratioScorer.weight = 5; //
         detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
-         detector.enable(); // Start the detector!
+        detector.enable(); // Start the detector!
         telemetry.addData("Status: ", "Ready");
         telemetry.update();
         waitForStart();
@@ -46,16 +46,16 @@ public class AutoNoCraterStraight extends LinearOpMode
         telemetry.addData("Status: ", "Running");
         telemetry.update();
         //come down
-        //hinge(.9, -7400);
+        //  hinge(.9, -7400);
         //unstick the robot from the wall
-        driveStraightBack(.8, 75, 0);
+        driveBack(1, 75);
         //move left to get out of
         driveLeft(.8, 500);
         // turn to make sure the robot is lined up
         turn(0);
         //move back, get ready o turn to scan
-        driveStraightBack(1, 1500, -90);
         //drive back to make sure it detects the first block
+        driveStraightBack(1, 1400, -90);
         driveStraightBack(1, 1500, -90);
         //go forward until it detects the cube
         while (!detector.getAligned() && opModeIsActive()) {
@@ -78,7 +78,7 @@ public class AutoNoCraterStraight extends LinearOpMode
             //make sure the robot is parallel to knocked off cube
             turn(-90);
             //come back after knock down
-            driveLeft(.9, 800);
+            driveLeft(.9, 1000);
             //make sure the robot is straight
             turn(-90);
             x=2;
@@ -86,26 +86,28 @@ public class AutoNoCraterStraight extends LinearOpMode
         //disable the detector
         detector.disable();
         //go forward the distance needed, towards vuforia
-        driveStraightRemDist(1, 6000, -45);
+        driveStraightRemDist(1, 6300, -220);
         //go left to hit the wall
-        driveRight(1, 600);
+        driveLeft(.6, 1500);
         //come off the wall
-        driveLeft(.8, 150);
+        driveRight(.8, 90);
         //make sure the robot is parallel to the wall
-        turn(-45);
+        turn(-215);
         //go to depot
-        driveStraightBack(1, 3200, -45);
+        driveStraightBack(1, 3600, -220);
         //drop off the team marker
         robot.drop.setPosition(1);
         sleep(500);
         robot.drop.setPosition(0);
         sleep(500);
+        turn(-215);
         //go park bro
-        driveStraightForward(1, 4500, -45);
+        driveStraightForward(1, 4500, -220);
         // make sure you're with the wall
-        driveLeft(.9, 300);
+        driveLeft(.7, 600);
+        turn(-215);
         //Park man!
-        driveStraightForward(1,1000, -45);
+        driveStraightForward(1,4000, -220);
     }
 
     public void turnAbsolute(int target) {
@@ -229,6 +231,31 @@ public class AutoNoCraterStraight extends LinearOpMode
         //turn on encoders
         robot.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+    public void driveBack(double speed, int Target) {
+        //RESET encoders
+        robot.rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //set target
+        robot.rightFront.setTargetPosition(-Target);
+        robot.leftBack.setTargetPosition(-Target);
+        //run to position
+        robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        runtime.reset();
+        //set speed
+        robot.rightFront.setPower(speed);
+        robot.leftBack.setPower(speed);
+        //update telemetry to show positions
+        while (robot.rightFront.isBusy() && robot.leftBack.isBusy()&& opModeIsActive()) {
+
+        }
+        //turn off any extra power
+        robot.rightFront.setPower(0);
+        robot.leftBack.setPower(0);
+        //turn on encoders
+        robot.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     public void driveStraightForward( double power, int duration, int desiredDegree) {
         double leftSpeed; //Power to feed the motors

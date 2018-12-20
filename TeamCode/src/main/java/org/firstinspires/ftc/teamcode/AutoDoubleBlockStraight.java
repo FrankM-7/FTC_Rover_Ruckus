@@ -46,9 +46,9 @@ public class AutoDoubleBlockStraight extends LinearOpMode
         telemetry.addData("Status: ", "Running");
         telemetry.update();
         //come down
-        //hinge(.9, -7400);
+        hinge(.9, -7400);
         //unstick the robot from the wall
-        driveStraightBack(.8, 75, 0);
+        driveBack(.8, 75);
         //move left to get out of
         driveLeft(.8, 500);
         // turn to make sure the robot is lined up
@@ -78,21 +78,21 @@ public class AutoDoubleBlockStraight extends LinearOpMode
             //make sure the robot is parallel to knocked off cube
             turn(-90);
             //come back after knock down
-            driveLeft(.9, 800);
+            driveLeft(.9, 1000);
             //make sure the robot is straight
             turn(-90);
             x=2;
         }
         //go forward the distance needed, towards vuforia
-        driveStraightRemDist(1, 6000, -220);
+        driveStraightRemDist(1, 6300, -220);
         //go left to hit the wall
-        driveLeft(1, 600);
+        driveLeft(.6, 1500);
         //come off the wall
-        driveRight(.8, 150);
+        driveRight(.8, 90);
         //make sure the robot is parallel to the wall
-        turn(-220);
+        turn(-215);
         //go to depot
-        driveStraightBack(1, 3200, -220);
+        driveStraightBack(1, 3600, -220);
         //drop off the team marker
         robot.drop.setPosition(1);
         sleep(500);
@@ -115,17 +115,64 @@ public class AutoDoubleBlockStraight extends LinearOpMode
             RFPos = robot.rightFront.getCurrentPosition();
             //make sure the robot is perfect parallel to the cube
             turn(-170);
+            driveStraightForward(.6, 500, -170);
             //knock it off
-            driveRight(.9, 1000);
+            driveRight(.9, 1500);
             //make sure the robot is parallel to knocked off cube
             turn(-170);
             //come back after knock down
-            driveLeft(.9, 800);
+            driveLeft(.9, 400);
             //make sure the robot is straight
             turn(-170);
             x=2;
         }
         detector.disable();
+    }
+    public void turnAbsoluteFast(int target) {
+        robot.rightFront.setDirection(DcMotor.Direction.FORWARD);
+        robot.leftBack.setDirection(DcMotor.Direction.REVERSE);
+        robot.zAccumulated = robot.mrGyro.getIntegratedZValue();  //Set variables to gyro readings
+        double turnSpeed = 0.7;
+
+        while (Math.abs(robot.zAccumulated - target) > 3 && opModeIsActive()) {  //Continue while the robot direction is further than three degrees from the target
+            if (robot.zAccumulated > target) {  //if gyro is positive, we will turn right
+                robot.rightFront.setPower(-turnSpeed);
+                robot.leftFront.setPower(turnSpeed);
+                robot.rightBack.setPower(-turnSpeed);
+                robot.leftBack.setPower(turnSpeed);      //turn left
+            }
+
+            if (robot.zAccumulated < target) {  //if gyro is positive, we will turn left
+                robot.rightFront.setPower(turnSpeed);
+                robot.leftFront.setPower(-turnSpeed);
+                robot.rightBack.setPower(turnSpeed);     //turn right
+                robot.leftBack.setPower(-turnSpeed);
+            }
+            telemetry.addData("Degree", String.format("%03d", robot.zAccumulated));
+            telemetry.update();
+            robot.zAccumulated = robot.mrGyro.getIntegratedZValue();  //Set variables to gyro readings
+        }
+
+        robot.rightFront.setPower(0);
+        robot.leftFront.setPower(0);
+        robot.rightBack.setPower(0);     //turn off
+        robot.leftBack.setPower(0);
+    }
+
+    public void turnFast(int degrees) {
+        robot.rightFront.setDirection(DcMotor.Direction.FORWARD);
+        robot.leftBack.setDirection(DcMotor.Direction.REVERSE);
+        robot.rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        robot.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        turnAbsolute(degrees);
     }
 
     public void turnAbsolute(int target) {
@@ -173,6 +220,31 @@ public class AutoDoubleBlockStraight extends LinearOpMode
         robot.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         turnAbsolute(degrees);
+    }
+    public void driveBack(double speed, int Target) {
+        //RESET encoders
+        robot.rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //set target
+        robot.rightFront.setTargetPosition(-Target);
+        robot.leftBack.setTargetPosition(-Target);
+        //run to position
+        robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        runtime.reset();
+        //set speed
+        robot.rightFront.setPower(speed);
+        robot.leftBack.setPower(speed);
+        //update telemetry to show positions
+        while (robot.rightFront.isBusy() && robot.leftBack.isBusy()&& opModeIsActive()) {
+
+        }
+        //turn off any extra power
+        robot.rightFront.setPower(0);
+        robot.leftBack.setPower(0);
+        //turn on encoders
+        robot.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void hinge(double speed, int target) {
@@ -403,7 +475,7 @@ public class AutoDoubleBlockStraight extends LinearOpMode
             telemetry.update();
         }
         //turn it off
-        turn(desiredDegree);
+        turnFast(desiredDegree);
 
         robot.leftBack.setPower(0);
         robot.rightFront.setPower(0);

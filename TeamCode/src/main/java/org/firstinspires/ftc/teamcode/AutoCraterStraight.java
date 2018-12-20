@@ -54,8 +54,8 @@ public class AutoCraterStraight extends LinearOpMode
         // turn to make sure the robot is lined up
         turn(0);
         //move back, get ready o turn to scan
-        driveStraightBack(1, 1500, -90);
         //drive back to make sure it detects the first block
+        driveStraightBack(1, 1400, -90);
         driveStraightBack(1, 1500, -90);
         //go forward until it detects the cube
         while (!detector.getAligned() && opModeIsActive()) {
@@ -78,7 +78,7 @@ public class AutoCraterStraight extends LinearOpMode
             //make sure the robot is parallel to knocked off cube
             turn(-90);
             //come back after knock down
-            driveLeft(.9, 800);
+            driveLeft(.9, 1000);
             //make sure the robot is straight
             turn(-90);
             x=2;
@@ -86,26 +86,28 @@ public class AutoCraterStraight extends LinearOpMode
         //disable the detector
         detector.disable();
         //go forward the distance needed, towards vuforia
-        driveStraightRemDist(1, 6000, -225);
+        driveStraightRemDist(1, 6300, -220);
         //go left to hit the wall
-        driveLeft(1, 600);
+        driveLeft(.6, 1500);
         //come off the wall
-        driveRight(.8, 150);
+        driveRight(.8, 90);
         //make sure the robot is parallel to the wall
-        turn(-225);
+        turn(-215);
         //go to depot
-        driveStraightBack(1, 3200, -225);
+        driveStraightBack(1, 3600, -220);
         //drop off the team marker
         robot.drop.setPosition(1);
         sleep(500);
         robot.drop.setPosition(0);
         sleep(500);
+        turn(-215);
         //go park bro
-        driveStraightForward(1, 4500, -225);
+        driveStraightForward(1, 4500, -220);
         // make sure you're with the wall
-        driveLeft(.9, 300);
+        driveLeft(.7, 600);
+        turn(-215);
         //Park man!
-        driveStraightForward(1,1000, -225);
+        driveStraightForward(1,4000, -220);
     }
 
     public void turnAbsolute(int target) {
