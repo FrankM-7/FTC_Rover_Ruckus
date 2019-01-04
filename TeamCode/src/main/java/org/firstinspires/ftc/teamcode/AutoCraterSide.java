@@ -9,15 +9,16 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="No Crater", group="4719")
+@Autonomous(name="Crater Side", group="4719")
 
-public class AutoNoCraterStraight extends LinearOpMode
+public class AutoCraterSide extends LinearOpMode
 {
     Hardware robot = new Hardware();
     private GoldAlignDetector detector;
     private ElapsedTime runtime = new ElapsedTime();
     int RFPos;
     int x=1;
+    int y=1;
 
     @Override
     public void runOpMode() {
@@ -40,13 +41,26 @@ public class AutoNoCraterStraight extends LinearOpMode
         telemetry.update();
         waitForStart();
 
-        while (robot.mrGyro.isCalibrating()&& opModeIsActive()) {
+        while (robot.mrGyro.isCalibrating() && opModeIsActive()) {
         }
 
-        telemetry.addData("Status: ", "Running");
-        telemetry.update();
-        //come down
-        //  hinge(.9, -7400);
+        robot.hingeMotor.setPower(1);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 1.5)) {
+            telemetry.addData("Path", "Leg 1: %2.5f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+
+        //if the robots switch is not pressed, keep on running the motor
+        while (!robot.cdi.getDigitalChannelState(1) && opModeIsActive()) {
+            //motor power while coming down
+            robot.hingeMotor.setPower(.1);
+        }
+        //if the robots switch is pressed then stop the robot and get out of this while loop
+        if (robot.cdi.getDigitalChannelState(1) && opModeIsActive()) {
+            //set power to 0, stop.
+            robot.hingeMotor.setPower(0);
+        }
         //unstick the robot from the wall
         driveBack(1, 75);
         //move left to get out of
@@ -100,14 +114,8 @@ public class AutoNoCraterStraight extends LinearOpMode
         sleep(500);
         robot.drop.setPosition(0);
         sleep(500);
-        turn(-215);
-        //go park bro
-        driveStraightForward(1, 4500, -220);
-        // make sure you're with the wall
-        driveLeft(.7, 600);
-        turn(-215);
         //Park man!
-        driveStraightForward(1,4000, -220);
+        driveStraightForwardFinal(1,9000);
     }
 
     public void turnAbsolute(int target) {
@@ -303,6 +311,57 @@ public class AutoNoCraterStraight extends LinearOpMode
             telemetry.update();
         }
         turn(desiredDegree);
+
+        robot.leftBack.setPower(0);
+        robot.rightFront.setPower(0);
+        robot.rightBack.setPower(0);
+        robot.leftFront.setPower(0);
+    }
+    public void driveStraightForwardFinal( double power, int duration) {
+        double leftSpeed; //Power to feed the motors
+        double rightSpeed;
+        double leftFSpeed;
+        double rightBSpeed;
+
+        robot.rightFront.setDirection(DcMotor.Direction.FORWARD);
+        robot.leftBack.setDirection(DcMotor.Direction.REVERSE);
+
+        double target = robot.mrGyro.getIntegratedZValue();  //Starting direction
+        double startPosition = robot.leftBack.getCurrentPosition();  //Starting position
+
+        robot.rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        robot.rightFront.setTargetPosition(duration);
+        robot.leftBack.setTargetPosition(duration);
+
+        robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        while (robot.leftBack.getCurrentPosition() < duration && opModeIsActive()) {  //While we have not passed out intended distance
+            robot.zAccumulated = robot.mrGyro.getIntegratedZValue();  //Current direction
+
+            leftSpeed = power + (robot.zAccumulated - target) / 100;  //Calculate speed for each side
+            rightSpeed = power - (robot.zAccumulated - target) / 100;  //See Gyro Straight video for detailed explanation
+            leftFSpeed = 0 + (robot.zAccumulated-target)/ 100;
+            rightBSpeed = 0 - (robot.zAccumulated - target) / 100;  //See Gyro Straight video for detailed explanation
+
+            leftSpeed = com.qualcomm.robotcore.util.Range.clip(leftSpeed, -1, 1);
+            rightSpeed = com.qualcomm.robotcore.util.Range.clip(rightSpeed, -1, 1);
+
+            robot.leftBack.setPower(leftSpeed);
+            robot.rightFront.setPower(rightSpeed);
+            robot.rightBack.setPower(rightBSpeed);
+            robot.leftFront.setPower(leftFSpeed);
+
+            telemetry.addData("1. Left", robot.leftBack.getPower());
+            telemetry.addData("2. Right", robot.rightFront.getPower());
+            telemetry.addData("3. LeftF", robot.leftFront.getPower());
+            telemetry.addData("4. RightB", robot.rightBack.getPower());
+            telemetry.addData("Angle: ", robot.zAccumulated);
+            telemetry.addData("3. Distance to go", duration + startPosition - robot.leftBack.getCurrentPosition());
+            telemetry.update();
+        }
 
         robot.leftBack.setPower(0);
         robot.rightFront.setPower(0);

@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 //V3.0
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -32,6 +34,9 @@ public class Hardware
     DcMotor  leftBack   = null;
     DcMotor  hingeMotor = null;
     Servo    drop = null;
+    DigitalChannel MRLimitSwitch;
+    DeviceInterfaceModule cdi;
+
     int zAccumulated;  //Total rotation left/right
     GyroSensor sensorGyro;  //General Gyro Sensor allows us to point to the sensor in the configuration file.
     ModernRoboticsI2cGyro mrGyro;  //ModernRoboticsI2cGyro allows us to .getIntegratedZValue()
@@ -58,6 +63,9 @@ public class Hardware
         hingeMotor = hwMap.get(DcMotor.class, "hingeMotor");
 
         sensorGyro = hwMap.gyroSensor.get("gyro");
+
+        MRLimitSwitch = hwMap.digitalChannel.get("limit");
+        cdi = hwMap.deviceInterfaceModule.get("Device Interface Module 1");
 
         rightFront.setDirection(DcMotor.Direction.FORWARD);
         leftFront.setDirection(DcMotor.Direction.REVERSE);

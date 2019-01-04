@@ -9,18 +9,20 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Crater Straight", group="4719")
+@Autonomous(name="No Crater", group="4719")
 
-public class AutoCraterStraight extends LinearOpMode
+public class AutoNoCrater extends LinearOpMode
 {
-    Hardware robot = new Hardware();
+    //variables
+    private Hardware robot = new Hardware();
     private GoldAlignDetector detector;
-    private ElapsedTime runtime = new ElapsedTime();
-    int RFPos;
-    int x=1;
+    private ElapsedTime     runtime = new ElapsedTime();
+    private int RFPos;
+
 
     @Override
     public void runOpMode() {
+        //initialize
         robot.init(hardwareMap);
         telemetry.addData("Status: ", "Starting Up");
         telemetry.update();
@@ -38,33 +40,46 @@ public class AutoCraterStraight extends LinearOpMode
         detector.enable(); // Start the detector!
         telemetry.addData("Status: ", "Ready");
         telemetry.update();
+
+        //wait for the button to be pressed
         waitForStart();
+            //wait for the gyro sensor to be calibrated
+           while (robot.mrGyro.isCalibrating() && opModeIsActive()) {
+           }
 
-        while (robot.mrGyro.isCalibrating()&& opModeIsActive()) {
-        }
+            robot.hingeMotor.setPower(1);
+            runtime.reset();
+            while (opModeIsActive() && (runtime.seconds() < 1.5)) {
+                telemetry.addData("Path", "Leg 1: %2.5f S Elapsed", runtime.seconds());
+                telemetry.update();
+            }
 
-        telemetry.addData("Status: ", "Running");
-        telemetry.update();
-        //come down
-      //  hinge(.9, -7400);
-        //unstick the robot from the wall
-        driveBack(1, 75);
-        //move left to get out of
-        driveLeft(.8, 500);
-        // turn to make sure the robot is lined up
-        turn(0);
-        //move back, get ready o turn to scan
-        //drive back to make sure it detects the first block
-        driveStraightBack(1, 1400, -90);
-        driveStraightBack(1, 1500, -90);
-        //go forward until it detects the cube
-        while (!detector.getAligned() && opModeIsActive()) {
-            //forward
-            robot.rightFront.setPower(.6);
-            robot.leftBack.setPower(.6);
-        }
-        //when detected, knock it off
-        while (detector.getAligned() && x==1 && opModeIsActive()) {
+            //if the robots switch is not pressed, keep on running the motor
+            while (!robot.cdi.getDigitalChannelState(1) && opModeIsActive()) {
+               //motor power while coming down
+                robot.hingeMotor.setPower(.1);
+            }
+            //if the robots switch is pressed then stop the robot and get out of this while loop
+            if (robot.cdi.getDigitalChannelState(1) && opModeIsActive()) {
+               //set power to 0, stop.
+                robot.hingeMotor.setPower(0);
+            }
+            //unstick the robot from the wall, move back from the lander
+            driveBack(.8, 75);
+            //move left to get out of the hinge
+            driveLeft(.8, 600);
+            // turn to make sure the robot is lined up
+            turn(0);
+            //move back and turn the camera to face the blocks
+            driveStraightBack(1, 1400, -90);
+            driveStraightBack(1, 1500, -90);
+            //go forward until it detects the cube
+            while (!detector.getAligned() && opModeIsActive()) {
+                //forward
+                robot.rightFront.setPower(.6);
+                robot.leftBack.setPower(.6);
+            }
+            //when detected, knock it off
             //short stop
             robot.leftBack.setPower(0);
             robot.rightFront.setPower(0);
@@ -74,41 +89,36 @@ public class AutoCraterStraight extends LinearOpMode
             //make sure the robot is perfect parallel to the cube
             turn(-90);
             //knock it off
-            driveRight(.9, 1000);
+            driveRight(.9, 1200);
             //make sure the robot is parallel to knocked off cube
             turn(-90);
             //come back after knock down
-            driveLeft(.9, 1000);
+            driveLeft(.9, 1200);
             //make sure the robot is straight
             turn(-90);
-            x=2;
+            //disable the detector
+            detector.disable();
+            //go forward the distance needed, towards vuforia
+            driveStraightRemDist(1, 6300, -45);
+            //go left to hit the wall
+            driveRight(.9, 1500);
+            //come off the wall
+            driveLeft(.6, 90);
+            //make sure the robot is parallel to the wall
+            turn(-45);
+            //go to depot
+            driveStraightBack(1, 3600, -45);
+            //drop off the team marker
+            robot.drop.setPosition(1);
+            sleep(500);
+            robot.drop.setPosition(0);
+            sleep(500);
+            turn(-45);
+            //go park bro
+            driveStraightForwardFinal(1, 9000);
+
         }
-        //disable the detector
-        detector.disable();
-        //go forward the distance needed, towards vuforia
-        driveStraightRemDist(1, 6300, -220);
-        //go left to hit the wall
-        driveLeft(.6, 1500);
-        //come off the wall
-        driveRight(.8, 90);
-        //make sure the robot is parallel to the wall
-        turn(-215);
-        //go to depot
-        driveStraightBack(1, 3600, -220);
-        //drop off the team marker
-        robot.drop.setPosition(1);
-        sleep(500);
-        robot.drop.setPosition(0);
-        sleep(500);
-        turn(-215);
-        //go park bro
-        driveStraightForward(1, 4500, -220);
-        // make sure you're with the wall
-        driveLeft(.7, 600);
-        turn(-215);
-        //Park man!
-        driveStraightForward(1,4000, -220);
-    }
+
 
     public void turnAbsolute(int target) {
         robot.rightFront.setDirection(DcMotor.Direction.FORWARD);
@@ -157,24 +167,6 @@ public class AutoCraterStraight extends LinearOpMode
         turnAbsolute(degrees);
     }
 
-    public void hinge(double speed, int target) {
-        //RESET motor
-        robot.hingeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        //set target
-        robot.hingeMotor.setTargetPosition(-target);
-        //run
-        robot.hingeMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        //set speed
-        robot.hingeMotor.setPower(speed);
-        //update telemetry to show positions
-        while (robot.hingeMotor.isBusy() && opModeIsActive()) {
-        }
-        //turn off power
-        robot.hingeMotor.setPower(0);
-        //turn off encoders
-        robot.hingeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
-
     public void driveRight(double speed, int Target) {
         robot.rightFront.setDirection(DcMotor.Direction.FORWARD);
         robot.leftBack.setDirection(DcMotor.Direction.REVERSE);
@@ -187,7 +179,7 @@ public class AutoCraterStraight extends LinearOpMode
         //run to position
         robot.leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         robot.rightBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        runtime.reset();
+
         //set speed
         robot.leftFront.setPower(speed);
         robot.rightBack.setPower(speed);
@@ -218,7 +210,6 @@ public class AutoCraterStraight extends LinearOpMode
         //run to position
         robot.leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         robot.rightBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        runtime.reset();
         //set speed
         robot.leftFront.setPower(speed);
         robot.rightBack.setPower(speed);
@@ -232,32 +223,7 @@ public class AutoCraterStraight extends LinearOpMode
         robot.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
-    public void driveBack(double speed, int Target) {
-        //RESET encoders
-        robot.rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        //set target
-        robot.rightFront.setTargetPosition(-Target);
-        robot.leftBack.setTargetPosition(-Target);
-        //run to position
-        robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        runtime.reset();
-        //set speed
-        robot.rightFront.setPower(speed);
-        robot.leftBack.setPower(speed);
-        //update telemetry to show positions
-        while (robot.rightFront.isBusy() && robot.leftBack.isBusy()&& opModeIsActive()) {
-
-        }
-        //turn off any extra power
-        robot.rightFront.setPower(0);
-        robot.leftBack.setPower(0);
-        //turn on encoders
-        robot.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-    }
-    public void driveStraightForward( double power, int duration, int desiredDegree) {
+    public void driveStraightForwardFinal( double power, int duration) {
         double leftSpeed; //Power to feed the motors
         double rightSpeed;
         double leftFSpeed;
@@ -302,14 +268,37 @@ public class AutoCraterStraight extends LinearOpMode
             telemetry.addData("3. Distance to go", duration + startPosition - robot.leftBack.getCurrentPosition());
             telemetry.update();
         }
-        turn(desiredDegree);
 
         robot.leftBack.setPower(0);
         robot.rightFront.setPower(0);
         robot.rightBack.setPower(0);
         robot.leftFront.setPower(0);
     }
-    private void driveStraightBack( double power, int duration, int desiredDegree) {
+    public void driveBack(double speed, int Target) {
+        //RESET encoders
+        robot.rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //set target
+        robot.rightFront.setTargetPosition(-Target);
+        robot.leftBack.setTargetPosition(-Target);
+        //run to position
+        robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.leftBack.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //set speed
+        robot.rightFront.setPower(speed);
+        robot.leftBack.setPower(speed);
+        //update telemetry to show positions
+        while (robot.rightFront.isBusy() && robot.leftBack.isBusy()&& opModeIsActive()) {
+
+        }
+        //turn off any extra power
+        robot.rightFront.setPower(0);
+        robot.leftBack.setPower(0);
+        //turn on encoders
+        robot.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+        private void driveStraightBack( double power, int duration, int desiredDegree) {
         double leftSpeed; //Power to feed the motors
         double rightSpeed;
         double leftFSpeed;
